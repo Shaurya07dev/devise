@@ -68,10 +68,10 @@ class PopupController {
   async loadData() {
     try {
       const response = await this.sendMessage({ action: 'getStatus' });
-      
+
       if (response?.success) {
         const { status, identity, stats, advanced, recentTools } = response.data;
-        
+
         this.updateStatus(status);
         this.updateIdentity(identity);
         this.updateStats(stats, advanced);
@@ -79,7 +79,48 @@ class PopupController {
         this.updateSecurity(advanced);
       }
     } catch (error) {
-      console.error('[Popup] Failed to load data:', error);
+      console.error('[Popup] Chrome runtime failed, trying Supabase:', error);
+      await this.loadFromSupabase();
+    }
+  }
+
+  async loadFromSupabase() {
+    const SB_URL = 'https://dsoqjhlkcslsxbgrdntz.supabase.co/rest/v1';
+    const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRzb3FqaGxrY3Nsc3hiZ3JkbnR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1MTMyMTIsImV4cCI6MjA4ODA4OTIxMn0.afQ2_AOE39j5dDjOEiC36Lp5kg3iMz_XlLJEKbBgShQ';
+    const h = { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` };
+
+    try {
+      const [events, threats, tools] = await Promise.all([
+        fetch(`${SB_URL}/events?select=id&limit=100`, { headers: h }).then(r => r.json()),
+        fetch(`${SB_URL}/threats?order=created_at.desc&limit=10`, { headers: h }).then(r => r.json()),
+        fetch(`${SB_URL}/tools?order=event_count.desc&limit=5`, { headers: h }).then(r => r.json())
+      ]);
+
+      if (this.elements.eventCount) this.elements.eventCount.textContent = this.formatNumber(events.length);
+      if (this.elements.threatCount) this.elements.threatCount.textContent = threats.length;
+      if (this.elements.riskScore) {
+        const risk = threats.filter(t => t.severity === 'critical').length * 25 + threats.filter(t => t.severity === 'high').length * 15;
+        this.elements.riskScore.textContent = risk > 0 ? risk : '—';
+      }
+
+      const categoryIcons = { conversational: '💬', coding: '💻', image: '🎨', video: '🎬', audio: '🎵', productivity: '📝', search: '🔍', default: '🔧' };
+      if (this.elements.toolCount) this.elements.toolCount.textContent = tools.length;
+      if (this.elements.toolsList && tools.length > 0) {
+        this.elements.toolsList.innerHTML = tools.map(t => `
+          <div class="tool-item">
+            <div class="tool-icon">${categoryIcons[t.category] || categoryIcons.default}</div>
+            <div class="tool-info">
+              <span class="tool-name">${this.escapeHtml(t.name)}</span>
+              <span class="tool-domain">${this.escapeHtml(t.domain)}</span>
+            </div>
+            <span class="tool-badge ${(t.risk || 'Medium').toLowerCase()}">${t.risk || 'Med'}</span>
+          </div>
+        `).join('');
+      }
+
+      console.log('[Popup] Data loaded from Supabase fallback');
+    } catch (sbErr) {
+      console.error('[Popup] Supabase fallback also failed:', sbErr);
       this.showError();
     }
   }
@@ -99,7 +140,7 @@ class PopupController {
     if (!identity) return;
 
     const { name, email } = identity;
-    
+
     if (this.elements.identityName) {
       this.elements.identityName.textContent = name || 'Unknown';
     }
@@ -128,7 +169,7 @@ class PopupController {
 
   updateTools(tools) {
     if (!this.elements.toolsList) return;
-    
+
     const toolCount = tools?.length || 0;
     if (this.elements.toolCount) {
       this.elements.toolCount.textContent = toolCount;
@@ -147,7 +188,7 @@ class PopupController {
     this.elements.toolsList.innerHTML = tools.slice(0, 5).map(tool => {
       const icon = categoryIcons[tool.category] || categoryIcons.default;
       const riskClass = (tool.risk || 'MEDIUM').toLowerCase();
-      
+
       return `
         <div class="tool-item">
           <div class="tool-icon">${icon}</div>

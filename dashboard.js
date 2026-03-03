@@ -1,7 +1,34 @@
 /**
  * Devise Dashboard Controller
- * Premium Analytics Dashboard
+ * Premium Analytics Dashboard — powered by Supabase
  */
+
+// Supabase REST config (inline to avoid ES module issues in file:// context)
+const SUPABASE_URL = 'https://dsoqjhlkcslsxbgrdntz.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRzb3FqaGxrY3Nsc3hiZ3JkbnR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1MTMyMTIsImV4cCI6MjA4ODA4OTIxMn0.afQ2_AOE39j5dDjOEiC36Lp5kg3iMz_XlLJEKbBgShQ';
+const REST_URL = `${SUPABASE_URL}/rest/v1`;
+const sbHeaders = {
+  'apikey': SUPABASE_KEY,
+  'Authorization': `Bearer ${SUPABASE_KEY}`,
+  'Content-Type': 'application/json'
+};
+
+async function sbSelect(table, query = '') {
+  const res = await fetch(`${REST_URL}/${table}?${query}`, { headers: sbHeaders });
+  if (!res.ok) throw new Error(`Supabase ${table}: ${res.status}`);
+  return res.json();
+}
+
+function getRelativeTime(isoString) {
+  const diff = Date.now() - new Date(isoString).getTime();
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 1) return 'just now';
+  if (minutes < 60) return `${minutes} min ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+  const days = Math.floor(hours / 24);
+  return `${days} day${days > 1 ? 's' : ''} ago`;
+}
 
 class DashboardController {
   constructor() {
@@ -25,29 +52,70 @@ class DashboardController {
 
   async loadData() {
     try {
-      const response = await this.sendMessage({ action: 'getStatus' });
-      
-      if (response?.success) {
-        const { status, stats, advanced, recentTools } = response.data;
-        
-        this.data.stats = {
-          events: stats?.total || 0,
-          threats: advanced?.threatDetection?.summary?.totalThreats || 0,
-          violations: advanced?.policyEngine?.summary?.policyViolations || 0,
-          riskScore: advanced?.threatDetection?.summary?.riskScore || 0
-        };
-        
-        this.data.tools = recentTools || [];
-        this.data.threats = advanced?.threatDetection?.recentThreats || [];
-        this.data.compliance = {
-          gdpr: Math.round(Math.random() * 10) + 90,
-          hipaa: Math.round(Math.random() * 15) + 85,
-          pci: Math.round(Math.random() * 12) + 88,
-          soc2: Math.round(Math.random() * 8) + 92
-        };
-      }
+      // Fetch all data from Supabase in parallel
+      const [events, threats, tools, compliance, violations] = await Promise.all([
+        sbSelect('events', 'order=created_at.desc&limit=100'),
+        sbSelect('threats', 'order=created_at.desc&limit=20'),
+        sbSelect('tools', 'order=event_count.desc&limit=10'),
+        sbSelect('compliance_scores', 'order=framework.asc'),
+        sbSelect('policy_violations', 'select=id')
+      ]);
+
+      // Threat stats
+      const threatStats = {
+        total: threats.length,
+        critical: threats.filter(t => t.severity === 'critical').length,
+        high: threats.filter(t => t.severity === 'high').length,
+        medium: threats.filter(t => t.severity === 'medium').length,
+        low: threats.filter(t => t.severity === 'low').length
+      };
+
+      // Risk score: weighted
+      const riskScore = Math.min(100,
+        threatStats.critical * 25 +
+        threatStats.high * 15 +
+        threatStats.medium * 5 +
+        threatStats.low * 1
+      );
+
+      // Compliance map
+      const complianceMap = {};
+      compliance.forEach(c => {
+        const key = c.framework.toLowerCase().replace(/[\s\-]/g, '');
+        complianceMap[key] = c.score;
+      });
+
+      this.data = {
+        stats: {
+          events: events.length,
+          threats: threatStats.total,
+          violations: violations.length,
+          riskScore
+        },
+        tools: tools.map(t => ({
+          name: t.name,
+          domain: t.domain,
+          category: t.category,
+          count: t.event_count,
+          risk: t.risk
+        })),
+        threats: threats.slice(0, 6).map(t => ({
+          type: t.type,
+          severity: t.severity,
+          time: getRelativeTime(t.created_at)
+        })),
+        compliance: {
+          gdpr: complianceMap.gdpr || 0,
+          hipaa: complianceMap.hipaa || 0,
+          pci: complianceMap.pcidss || complianceMap['pcidss'] || 0,
+          soc2: complianceMap.soc2 || complianceMap['soc2'] || 0
+        },
+        threatStats
+      };
+
+      console.log('[Dashboard] Data loaded from Supabase:', this.data.stats);
     } catch (error) {
-      console.error('[Dashboard] Load failed:', error);
+      console.error('[Dashboard] Supabase load failed, using sample data:', error);
       this.loadSampleData();
     }
   }
@@ -68,7 +136,8 @@ class DashboardController {
         { type: 'Policy Violation', severity: 'medium', time: '1 hour ago' },
         { type: 'Unusual Activity', severity: 'low', time: '2 hours ago' }
       ],
-      compliance: { gdpr: 95, hipaa: 88, pci: 92, soc2: 97 }
+      compliance: { gdpr: 95, hipaa: 88, pci: 92, soc2: 97 },
+      threatStats: { total: 4, critical: 1, high: 1, medium: 1, low: 1 }
     };
   }
 
@@ -79,13 +148,13 @@ class DashboardController {
   drawActivityChart() {
     const canvas = document.getElementById('activityChart');
     if (!canvas) return;
-    
+
     const ctx = canvas.getContext('2d');
     const rect = canvas.parentElement.getBoundingClientRect();
-    
+
     canvas.width = rect.width;
     canvas.height = rect.height;
-    
+
     // Generate data
     const points = [];
     for (let i = 23; i >= 0; i--) {
@@ -94,7 +163,7 @@ class DashboardController {
         value: Math.floor(Math.random() * 150) + 50
       });
     }
-    
+
     this.drawLineChart(ctx, points, canvas.width, canvas.height);
   }
 
@@ -102,82 +171,79 @@ class DashboardController {
     const padding = { top: 20, right: 20, bottom: 30, left: 50 };
     const chartWidth = width - padding.left - padding.right;
     const chartHeight = height - padding.top - padding.bottom;
-    
-    // Clear
+
     ctx.clearRect(0, 0, width, height);
-    
-    // Find max
+
     const maxValue = Math.max(...points.map(p => p.value));
-    
-    // Draw grid
+
+    // Grid lines
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
     ctx.lineWidth = 1;
-    
+
     for (let i = 0; i <= 4; i++) {
       const y = padding.top + (chartHeight / 4) * i;
       ctx.beginPath();
       ctx.moveTo(padding.left, y);
       ctx.lineTo(width - padding.right, y);
       ctx.stroke();
-      
-      // Labels
+
       ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
       ctx.font = '10px -apple-system, sans-serif';
       ctx.textAlign = 'right';
       ctx.fillText(Math.round(maxValue - (maxValue / 4) * i), padding.left - 10, y + 4);
     }
-    
-    // Draw area gradient
+
+    // Area gradient
     const gradient = ctx.createLinearGradient(0, padding.top, 0, height - padding.bottom);
     gradient.addColorStop(0, 'rgba(99, 102, 241, 0.2)');
     gradient.addColorStop(1, 'rgba(99, 102, 241, 0)');
-    
+
     ctx.fillStyle = gradient;
     ctx.beginPath();
     ctx.moveTo(padding.left, height - padding.bottom);
-    
+
     points.forEach((point, i) => {
       const x = padding.left + (i / (points.length - 1)) * chartWidth;
       const y = padding.top + chartHeight - (point.value / maxValue) * chartHeight;
       ctx.lineTo(x, y);
     });
-    
+
     ctx.lineTo(width - padding.right, height - padding.bottom);
     ctx.closePath();
     ctx.fill();
-    
-    // Draw line
+
+    // Line
     ctx.strokeStyle = '#6366F1';
     ctx.lineWidth = 2;
     ctx.lineJoin = 'round';
     ctx.beginPath();
-    
+
     points.forEach((point, i) => {
       const x = padding.left + (i / (points.length - 1)) * chartWidth;
       const y = padding.top + chartHeight - (point.value / maxValue) * chartHeight;
-      
+
       if (i === 0) ctx.moveTo(x, y);
       else ctx.lineTo(x, y);
     });
-    
+
     ctx.stroke();
-    
-    // Draw dots
+
+    // Dots
     points.forEach((point, i) => {
       const x = padding.left + (i / (points.length - 1)) * chartWidth;
       const y = padding.top + chartHeight - (point.value / maxValue) * chartHeight;
-      
+
       ctx.fillStyle = '#6366F1';
       ctx.beginPath();
       ctx.arc(x, y, 3, 0, Math.PI * 2);
       ctx.fill();
     });
-    
+
     // X-axis labels
     ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
     ctx.font = '10px -apple-system, sans-serif';
     ctx.textAlign = 'center';
-    
+
     for (let i = 0; i < points.length; i += 6) {
       const x = padding.left + (i / (points.length - 1)) * chartWidth;
       ctx.fillText(`${points[i].hour}h`, x, height - 10);
@@ -191,24 +257,25 @@ class DashboardController {
       btn.classList.add('loading');
       await this.loadData();
       this.render();
+      this.drawActivityChart();
       btn.classList.remove('loading');
     });
-    
+
     // Export button
     document.getElementById('exportBtn')?.addEventListener('click', () => {
       this.exportData();
     });
-    
+
     // Time range
     document.getElementById('timeRange')?.addEventListener('change', () => {
       this.drawActivityChart();
     });
-    
+
     // Window resize
     window.addEventListener('resize', () => {
       this.drawActivityChart();
     });
-    
+
     // Navigation
     document.querySelectorAll('.nav-item').forEach(item => {
       item.addEventListener('click', (e) => {
@@ -223,11 +290,12 @@ class DashboardController {
     this.renderTools();
     this.renderThreats();
     this.renderCompliance();
+    this.renderRiskBars();
   }
 
   renderStats() {
     const { stats } = this.data;
-    
+
     document.getElementById('totalEvents').textContent = this.formatNumber(stats.events);
     document.getElementById('threatsDetected').textContent = stats.threats;
     document.getElementById('violations').textContent = stats.violations;
@@ -237,12 +305,12 @@ class DashboardController {
   renderTools() {
     const tbody = document.getElementById('toolsTableBody');
     if (!tbody) return;
-    
+
     const categoryIcons = {
       conversational: '💬', coding: '💻', image: '🎨', video: '🎬',
       audio: '🎵', productivity: '📝', search: '🔍', default: '🔧'
     };
-    
+
     tbody.innerHTML = this.data.tools.map(tool => `
       <tr>
         <td>
@@ -264,7 +332,7 @@ class DashboardController {
   renderThreats() {
     const tbody = document.getElementById('threatsTableBody');
     if (!tbody) return;
-    
+
     tbody.innerHTML = this.data.threats.map(threat => `
       <tr>
         <td style="font-weight: 500; color: var(--text-primary)">${this.escapeHtml(threat.type)}</td>
@@ -276,42 +344,58 @@ class DashboardController {
 
   renderCompliance() {
     const { compliance } = this.data;
-    
+
     const scores = [
       { id: 'gdpr', value: compliance.gdpr },
       { id: 'hipaa', value: compliance.hipaa },
       { id: 'pci', value: compliance.pci },
       { id: 'soc2', value: compliance.soc2 }
     ];
-    
+
     scores.forEach(score => {
       const ring = document.getElementById(`${score.id}Ring`);
       const valueEl = document.getElementById(`${score.id}Score`);
-      
+
       if (ring) {
         const offset = 100 - score.value;
         ring.style.strokeDashoffset = offset;
       }
-      
+
       if (valueEl) {
         valueEl.textContent = score.value;
       }
     });
   }
 
+  renderRiskBars() {
+    const ts = this.data.threatStats;
+    if (!ts) return;
+
+    const total = Math.max(ts.total, 1);
+    const items = [
+      { id: 'critical', count: ts.critical },
+      { id: 'high', count: ts.high },
+      { id: 'medium', count: ts.medium },
+      { id: 'low', count: ts.low }
+    ];
+
+    items.forEach(item => {
+      const bar = document.getElementById(`${item.id}Bar`);
+      const val = document.getElementById(`${item.id}Count`);
+      if (bar) bar.style.width = `${Math.max((item.count / total) * 100, 5)}%`;
+      if (val) val.textContent = item.count;
+    });
+  }
+
   async exportData() {
     try {
-      const response = await this.sendMessage({ action: 'exportAllData' });
-      
-      if (response?.success) {
-        const blob = new Blob([JSON.stringify(response.data, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `devise-export-${Date.now()}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-      }
+      const blob = new Blob([JSON.stringify(this.data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `devise-export-${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
     } catch (error) {
       console.error('[Dashboard] Export failed:', error);
     }
@@ -322,18 +406,6 @@ class DashboardController {
       await this.loadData();
       this.render();
     }, 30000);
-  }
-
-  sendMessage(message) {
-    return new Promise((resolve, reject) => {
-      chrome.runtime.sendMessage(message, (response) => {
-        if (chrome.runtime.lastError) {
-          reject(chrome.runtime.lastError);
-        } else {
-          resolve(response);
-        }
-      });
-    });
   }
 
   formatNumber(num) {
