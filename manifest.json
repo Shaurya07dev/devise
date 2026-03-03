@@ -1,0 +1,133 @@
+{
+  "manifest_version": 3,
+  "name": "Devise - Enterprise AI Governance (Advanced)",
+  "version": "3.0.0",
+  "description": "Enterprise AI governance with advanced monitoring - PII detection, encryption, policy engine, threat detection, and real-time analytics.",
+  
+  "permissions": [
+    "webNavigation",
+    "tabs",
+    "storage",
+    "alarms",
+    "identity",
+    "contextMenus",
+    "notifications",
+    "activeTab",
+    "scripting",
+    "declarativeNetRequest",
+    "declarativeNetRequestFeedback",
+    "offscreen"
+  ],
+  
+  "optional_permissions": [
+    "clipboardRead",
+    "clipboardWrite",
+    "history"
+  ],
+  
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": [
+        "lib/tensorflow.min.js",
+        "modules/pii-detector.js",
+        "modules/behavior-analytics.js",
+        "modules/network-interceptor.js",
+        "content-monitor.js"
+      ],
+      "css": ["content-styles.css"],
+      "run_at": "document_start",
+      "all_frames": true
+    },
+    {
+      "matches": ["https://*/*", "http://*/*"],
+      "js": ["ai-input-capture.js"],
+      "run_at": "document_end",
+      "all_frames": true
+    }
+  ],
+  
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    },
+    "default_title": "Devise AI Governance Advanced"
+  },
+  
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  
+  "options_page": "dashboard.html",
+  
+  "options_ui": {
+    "page": "dashboard.html",
+    "open_in_tab": true
+  },
+  
+  "storage": {
+    "managed_schema": "managed_schema.json"
+  },
+  
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "dashboard.html",
+        "onboarding.html",
+        "content-styles.css",
+        "lib/*"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  
+  "commands": {
+    "capture-screenshot": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+S",
+        "mac": "Command+Shift+S"
+      },
+      "description": "Capture screenshot of current AI tool"
+    },
+    "toggle-monitoring": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+M",
+        "mac": "Command+Shift+M"
+      },
+      "description": "Toggle monitoring on/off"
+    },
+    "emergency-lockdown": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+L",
+        "mac": "Command+Shift+L"
+      },
+      "description": "Emergency lockdown - block all AI tools"
+    }
+  },
+  
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "ruleset_1",
+        "enabled": true,
+        "path": "network-rules.json"
+      }
+    ]
+  }
+}

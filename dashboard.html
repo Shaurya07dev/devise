@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Devise Dashboard</title>
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+  <div class="dashboard">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/>
+            <circle cx="12" cy="12" r="3" fill="currentColor"/>
+          </svg>
+        </div>
+        <span class="brand-name">Devise</span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="#overview" class="nav-item active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7" rx="1"/>
+            <rect x="14" y="3" width="7" height="7" rx="1"/>
+            <rect x="3" y="14" width="7" height="7" rx="1"/>
+            <rect x="14" y="14" width="7" height="7" rx="1"/>
+          </svg>
+          <span>Overview</span>
+        </a>
+        <a href="#tools" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+          <span>AI Tools</span>
+        </a>
+        <a href="#security" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+          <span>Security</span>
+        </a>
+        <a href="#compliance" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 12l2 2 4-4"/>
+            <path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9c2.12 0 4.07.74 5.61 1.97"/>
+          </svg>
+          <span>Compliance</span>
+        </a>
+        <a href="#reports" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
+          </svg>
+          <span>Reports</span>
+        </a>
+        <a href="#integrations" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+          <span>Integrations</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div class="user-avatar" id="userAvatar">?</div>
+          <div class="user-details">
+            <span class="user-name" id="userName">Unknown</span>
+            <span class="user-role" id="userRole">Not configured</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main">
+      <!-- Top Bar -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <h1 class="page-title">Overview</h1>
+          <p class="page-subtitle">Monitor AI governance across your organization</p>
+        </div>
+        <div class="topbar-right">
+          <div class="status-badge">
+            <span class="status-dot active"></span>
+            <span>All systems operational</span>
+          </div>
+          <button class="btn btn-secondary" id="exportBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+            </svg>
+            Export
+          </button>
+          <button class="btn btn-primary" id="refreshBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M23 4v6h-6M1 20v-6h6"/>
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+            </svg>
+            Refresh
+          </button>
+        </div>
+      </header>
+
+      <!-- Content -->
+      <div class="content">
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-label">Total Events</span>
+              <div class="stat-icon blue">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                </svg>
+              </div>
+            </div>
+            <div class="stat-value" id="totalEvents">0</div>
+            <div class="stat-change positive">
+              <span>↑ 12%</span> from last week
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-label">Threats Detected</span>
+              <div class="stat-icon red">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                  <line x1="12" y1="9" x2="12" y2="13"/>
+                  <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+              </div>
+            </div>
+            <div class="stat-value" id="threatsDetected">0</div>
+            <div class="stat-change negative">
+              <span>↓ 8%</span> from last week
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-label">Policy Violations</span>
+              <div class="stat-icon orange">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+              </div>
+            </div>
+            <div class="stat-value" id="violations">0</div>
+            <div class="stat-change neutral">
+              <span>—</span> unchanged
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-label">Risk Score</span>
+              <div class="stat-icon green">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                  <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+              </div>
+            </div>
+            <div class="stat-value" id="riskScore">0</div>
+            <div class="stat-change positive">
+              <span>Low</span> risk level
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="charts-row">
+          <div class="card chart-card">
+            <div class="card-header">
+              <h3>Activity Timeline</h3>
+              <select class="select" id="timeRange">
+                <option value="24h">Last 24 hours</option>
+                <option value="7d">Last 7 days</option>
+                <option value="30d">Last 30 days</option>
+              </select>
+            </div>
+            <div class="chart-container">
+              <canvas id="activityChart"></canvas>
+            </div>
+          </div>
+
+          <div class="card risk-card">
+            <div class="card-header">
+              <h3>Risk Distribution</h3>
+            </div>
+            <div class="risk-bars">
+              <div class="risk-bar-item">
+                <div class="risk-bar-label">Critical</div>
+                <div class="risk-bar-track">
+                  <div class="risk-bar-fill critical" id="criticalBar" style="width: 10%"></div>
+                </div>
+                <div class="risk-bar-value" id="criticalCount">2</div>
+              </div>
+              <div class="risk-bar-item">
+                <div class="risk-bar-label">High</div>
+                <div class="risk-bar-track">
+                  <div class="risk-bar-fill high" id="highBar" style="width: 25%"></div>
+                </div>
+                <div class="risk-bar-value" id="highCount">5</div>
+              </div>
+              <div class="risk-bar-item">
+                <div class="risk-bar-label">Medium</div>
+                <div class="risk-bar-track">
+                  <div class="risk-bar-fill medium" id="mediumBar" style="width: 40%"></div>
+                </div>
+                <div class="risk-bar-value" id="mediumCount">12</div>
+              </div>
+              <div class="risk-bar-item">
+                <div class="risk-bar-label">Low</div>
+                <div class="risk-bar-track">
+                  <div class="risk-bar-fill low" id="lowBar" style="width: 80%"></div>
+                </div>
+                <div class="risk-bar-value" id="lowCount">38</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tables Row -->
+        <div class="tables-row">
+          <div class="card table-card">
+            <div class="card-header">
+              <h3>Top AI Tools</h3>
+              <a href="#tools" class="card-link">View all →</a>
+            </div>
+            <div class="table-container">
+              <table class="table" id="toolsTable">
+                <thead>
+                  <tr>
+                    <th>Tool</th>
+                    <th>Category</th>
+                    <th>Events</th>
+                    <th>Risk</th>
+                  </tr>
+                </thead>
+                <tbody id="toolsTableBody">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card table-card">
+            <div class="card-header">
+              <h3>Recent Threats</h3>
+              <a href="#security" class="card-link">View all →</a>
+            </div>
+            <div class="table-container">
+              <table class="table" id="threatsTable">
+                <thead>
+                  <tr>
+                    <th>Type</th>
+                    <th>Severity</th>
+                    <th>Time</th>
+                  </tr>
+                </thead>
+                <tbody id="threatsTableBody">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Compliance Section -->
+        <div class="compliance-section">
+          <div class="card compliance-card">
+            <div class="card-header">
+              <h3>Compliance Status</h3>
+            </div>
+            <div class="compliance-grid">
+              <div class="compliance-item">
+                <div class="compliance-score">
+                  <svg viewBox="0 0 36 36" class="score-ring">
+                    <circle cx="18" cy="18" r="16" fill="none" stroke="#1A222E" stroke-width="3"/>
+                    <circle cx="18" cy="18" r="16" fill="none" stroke="#10B981" stroke-width="3" 
+                            stroke-dasharray="100 100" stroke-dashoffset="5" id="gdprRing"/>
+                  </svg>
+                  <span class="score-value" id="gdprScore">95</span>
+                </div>
+                <div class="compliance-label">GDPR</div>
+              </div>
+              <div class="compliance-item">
+                <div class="compliance-score">
+                  <svg viewBox="0 0 36 36" class="score-ring">
+                    <circle cx="18" cy="18" r="16" fill="none" stroke="#1A222E" stroke-width="3"/>
+                    <circle cx="18" cy="18" r="16" fill="none" stroke="#6366F1" stroke-width="3"
+                            stroke-dasharray="100 100" stroke-dashoffset="12" id="hipaaRing"/>
+                  </svg>
+                  <span class="score-value" id="hipaaScore">88</span>
+                </div>
+                <div class="compliance-label">HIPAA</div>
+              </div>
+              <div class="compliance-item">
+                <div class="compliance-score">
+                  <svg viewBox="0 0 36 36" class="score-ring">
+                    <circle cx="18" cy="18" r="16" fill="none" stroke="#1A222E" stroke-width="3"/>
+                    <circle cx="18" cy="18" r="16" fill="none" stroke="#F59E0B" stroke-width="3"
+                            stroke-dasharray="100 100" stroke-dashoffset="8" id="pciRing"/>
+                  </svg>
+                  <span class="score-value" id="pciScore">92</span>
+                </div>
+                <div class="compliance-label">PCI-DSS</div>
+              </div>
+              <div class="compliance-item">
+                <div class="compliance-score">
+                  <svg viewBox="0 0 36 36" class="score-ring">
+                    <circle cx="18" cy="18" r="16" fill="none" stroke="#1A222E" stroke-width="3"/>
+                    <circle cx="18" cy="18" r="16" fill="none" stroke="#8B5CF6" stroke-width="3"
+                            stroke-dasharray="100 100" stroke-dashoffset="3" id="soc2Ring"/>
+                  </svg>
+                  <span class="score-value" id="soc2Score">97</span>
+                </div>
+                <div class="compliance-label">SOC 2</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="dashboard.js"></script>
+</body>
+</html>

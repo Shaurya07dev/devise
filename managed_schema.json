@@ -1,0 +1,14 @@
+{
+  "type": "object",
+  "properties": {
+    "policyConfig": {
+      "type": "object",
+      "description": "Enterprise policy configuration for the Devise extension.",
+      "properties": {},
+      "additionalProperties": {
+        "type": "string"
+      }
+    }
+  }
+}
+

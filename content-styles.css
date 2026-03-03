@@ -1,0 +1,165 @@
+/**
+ * Devise Content Styles
+ * Minimal, non-intrusive styling for content script
+ */
+
+/* Monitoring Indicator - Minimal */
+.devise-indicator {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  z-index: 2147483647;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: rgba(10, 13, 20, 0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.5);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: all 300ms ease;
+}
+
+.devise-indicator.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.devise-indicator .dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #6366F1;
+}
+
+.devise-indicator.ai-page .dot {
+  background: #10B981;
+}
+
+.devise-indicator.warning .dot {
+  background: #F59E0B;
+}
+
+.devise-indicator.danger .dot {
+  background: #EF4444;
+}
+
+/* Toast Notifications - Minimal */
+.devise-toast {
+  position: fixed;
+  bottom: 48px;
+  right: 16px;
+  z-index: 2147483647;
+  max-width: 280px;
+  padding: 12px 16px;
+  background: rgba(10, 13, 20, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 12px;
+  color: #FFFFFF;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
+}
+
+.devise-toast.success {
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.devise-toast.warning {
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.devise-toast.error {
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fadeOut {
+  to { opacity: 0; transform: translateX(20px); }
+}
+
+/* PII Highlight - Subtle */
+.devise-pii-highlight {
+  outline: 1px dashed rgba(239, 68, 68, 0.4) !important;
+  outline-offset: 2px !important;
+}
+
+/* Blocked Page Overlay */
+.devise-blocked-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2147483647;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0A0D14 0%, #141A24 100%);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.devise-blocked-content {
+  text-align: center;
+  padding: 48px;
+  max-width: 400px;
+}
+
+.devise-blocked-icon {
+  font-size: 48px;
+  margin-bottom: 24px;
+  opacity: 0.8;
+}
+
+.devise-blocked-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #FFFFFF;
+  margin-bottom: 12px;
+}
+
+.devise-blocked-message {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 32px;
+  line-height: 1.6;
+}
+
+.devise-blocked-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 20px;
+  font-size: 12px;
+  color: #EF4444;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .devise-indicator {
+    bottom: 8px;
+    right: 8px;
+  }
+  
+  .devise-toast {
+    left: 16px;
+    right: 16px;
+    max-width: none;
+  }
+}
